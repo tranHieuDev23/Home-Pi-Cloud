@@ -1,0 +1,5 @@
+flask
+gunicorn
+jwt
+python-dotenv
+paho-mqtt
