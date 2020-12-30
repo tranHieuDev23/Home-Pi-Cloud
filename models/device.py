@@ -1,7 +1,7 @@
-import enum
+from enum import Enum
 
 
-class DeviceType(enum):
+class DeviceType(Enum):
     SMART_LIGHT = 'SMART_LIGHT'
     THERMOSTAT = 'THERMOSTAT'
 
