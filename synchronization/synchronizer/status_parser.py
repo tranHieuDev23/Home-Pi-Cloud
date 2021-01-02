@@ -9,15 +9,15 @@ import re
 class StatusParser(Parser):
 
     def __init__(self):
-        self.__pattern = "(.*)/(.*)/(.*)/(.*)"
+        self.__pattern = "(.*)/(.*)/(.*)"
 
-    def parse(self, content: str):
+    def parse(self, content: str) -> Info:
         result = re.match(self.__pattern, content)
         if result is not None:
             username = result.group(1)
-            address = result.group(2)
-            id = result.group(3)
-            status = result.group(4)
+            address = "iot_db.device"
+            id = result.group(2)
+            status = result.group(3)
             return Info(address, id, status)
         else:
             return None
