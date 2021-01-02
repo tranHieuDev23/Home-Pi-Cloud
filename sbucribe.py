@@ -1,18 +1,19 @@
-import paho.mqtt.client as paho
+# import time
+#
+# from synchronization.fetcher.device_status_fetcher_factory import DeviceStatusFetcherFactory
+#
+# fetcher = DeviceStatusFetcherFactory(None, None, "test").create_fetcher()
+#
+# fetcher.start()
+#
+# while True:
+#     iterator = fetcher.get_updated()
+#     while iterator.has_next():
+#         msg = iterator.next()
+#         print(msg)
+#     time.sleep(10)
+from synchronization.home_pi_status_manager import HomePiStatusManager
 
+manager = HomePiStatusManager(None, None, "test")
 
-def on_subscribe(client, userdata, mid, granted_qos):
-    print("Subscribed: " + str(mid) + " " + str(granted_qos))
-
-
-def on_message(client, userdata, msg):
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-
-
-client = paho.Client()
-client.on_subscribe = on_subscribe
-client.on_message = on_message
-client.connect("localhost", 1883)
-client.subscribe("test", qos=1)
-
-client.loop_forever()
+manager.start_synchronizing()
