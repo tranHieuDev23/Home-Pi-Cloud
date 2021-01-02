@@ -11,3 +11,9 @@ services:
       POSTGRES_PASSWORD: guest
       POSTGRES_USER: guest
       POSTGRES_DB: iot
+
+  broker:
+    image: hivemq/hivemq4
+    ports:
+    - 8080:8080
+    - 1883:1883
