@@ -1,8 +1,7 @@
 # Created by quangkhanh at 02/01/2021
 # File: status_manager.py
 import threading
-from abc import ABCMeta, abstractmethod
-from concurrent.futures import thread
+from abc import ABCMeta
 
 from synchronization.synchronizer.status_synchronizer import StatusSynchronizer
 
