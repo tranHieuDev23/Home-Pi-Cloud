@@ -207,4 +207,4 @@ class HomePiService:
         field_values = [
             self.__log_dao.get_latest(device.id, item) for item in field_names
         ]
-        return field_values
+        return device, field_values

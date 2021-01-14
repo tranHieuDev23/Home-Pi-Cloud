@@ -287,14 +287,16 @@ def create_app():
         user = auth_service.get_user_from_jwt(jwt)
         device_name = request_json['deviceName']
         field_names = request_json['fieldNames']
-        field_values = home_pi_service.get_status(
+        result = home_pi_service.get_status(
             device_name, user.username, field_names)
-        if (field_values is None):
+        if (result is None):
             return __get_json_response__({
                 'success': False
             })
+        target_device, field_values = result
         return __get_json_response__({
             'success': True,
+            'target': target_device,
             'fieldValues': field_values
         })
 
