@@ -10,7 +10,7 @@ class StatusLogDAO(PostgresDAO):
 
     def get(self, key):
         command = f'''
-        SELECT * FROM iot_db.status_logs where id = '{key}';
+        SELECT * FROM iot_db.status_logs WHERE id = '{key}';
         '''
         row = self.connection.query(command)
         if row.__len__() > 0:
@@ -38,7 +38,7 @@ class StatusLogDAO(PostgresDAO):
     def save(self, status_log: StatusLog):
         command = f'''
         INSERT INTO iot_db.status_logs (of_device, timestamp, field_name, field_value) VALUES 
-            ('{status_log.of_device}', '{status_log.timestamp}', '{status_log.field_name}', '{status_log.field_value}')
+            ('{status_log.ofDevice}', '{status_log.timestamp}', '{status_log.fieldName}', '{status_log.fieldValue}')
         RETURNING *;
         '''
         rows = self.connection.query(command)

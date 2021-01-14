@@ -34,7 +34,7 @@ class CommanderDAO(PostgresDAO):
     def update(self, entity: Commander):
         command = f'''
         UPDATE iot_db.commanders SET 
-        display_name = '{entity.display_name}', of_user = '{entity.owner}'
+        display_name = '{entity.displayName}', of_user = '{entity.owner}'
         WHERE id = {entity.id};
         '''
         self.connection.update(command)
@@ -42,7 +42,7 @@ class CommanderDAO(PostgresDAO):
     def save(self, entity: Commander):
         command = f'''
         INSERT INTO iot_db.commanders(display_name, of_user) VALUES
-            ('{entity.display_name}', '{entity.owner}')
+            ('{entity.displayName}', '{entity.owner}')
         RETURNING *;
         '''
         rows = self.connection.query(command)

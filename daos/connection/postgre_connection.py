@@ -1,4 +1,4 @@
-# author: Khanh.Quang 
+# author: Khanh.Quang
 # institute: Hanoi University of Science and Technology
 # file name: postgre_connection.py
 # project name: Home-Pi-Cloud
@@ -30,6 +30,7 @@ class PostgreConnection(DBConnection):
         try:
             cur = self.con.cursor()
             cur.execute(command)
+            self.con.commit()
             return cur.fetchall()
 
         except Exception as e:

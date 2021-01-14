@@ -11,7 +11,7 @@ from models.device import Device, DeviceType
 
 def _make_device(row) -> Device:
     return Device(id=int(row[0]),
-                  display_name=row[1],
+                  displayName=row[1],
                   type=DeviceType[row[2]],
                   owner=row[3])
 
@@ -20,7 +20,7 @@ class DeviceDAO(PostgresDAO):
 
     def get(self, key):
         command = f'''
-        SELECT * FROM iot_db.devices where id = '{key}';
+        SELECT * FROM iot_db.devices WHERE id = '{key}';
         '''
         row = self.connection.query(command)
         if row.__len__() > 0:
@@ -38,7 +38,7 @@ class DeviceDAO(PostgresDAO):
     def update(self, device: Device):
         command = f'''
         UPDATE iot_db.devices SET 
-        display_name = '{device.display_name}',
+        display_name = '{device.displayName}',
         type = '{device.type.name}',
         of_user = '{device.owner}'
         WHERE id = '{device.id}';
@@ -48,7 +48,7 @@ class DeviceDAO(PostgresDAO):
     def save(self, entity: Device):
         command = f'''
         INSERT INTO iot_db.devices (display_name, type, of_user) VALUES 
-            ('{entity.display_name}', '{entity.type.name}', '{entity.owner}')
+            ('{entity.displayName}', '{entity.type.name}', '{entity.owner}')
         RETURNING *;
         '''
         rows = self.connection.query(command)

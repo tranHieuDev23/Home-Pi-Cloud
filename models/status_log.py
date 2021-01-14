@@ -1,7 +1,7 @@
 class StatusLog:
-    def __init__(self, id, of_device, timestamp, field_name, field_value):
+    def __init__(self, id, ofDevice, timestamp, fieldName, fieldValue):
         self.id = id
-        self.of_device = of_device
+        self.ofDevice = ofDevice
         self.timestamp = timestamp
-        self.field_name = field_name
-        self.field_value = field_value
+        self.fieldName = fieldName
+        self.fieldValue = fieldValue

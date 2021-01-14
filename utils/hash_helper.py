@@ -1,9 +1,9 @@
 import bcrypt
 
 
-def hash(message):
-    bcrypt.hashpw(message, bcrypt.gensalt(rounds=6))
+def hash_message(message: str):
+    return bcrypt.hashpw(message.encode(), bcrypt.gensalt(rounds=6)).decode()
 
 
-def is_equal(message, hashed):
-    bcrypt.checkpw(message, hashed)
+def is_equal(message: str, hashed: str):
+    return bcrypt.checkpw(message.encode(), hashed.encode())

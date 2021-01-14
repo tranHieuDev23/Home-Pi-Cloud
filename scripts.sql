@@ -2,6 +2,7 @@ drop table if exists iot_db.status_logs;
 drop table if exists iot_db.commanders;
 drop table if exists iot_db.devices;
 drop table if exists iot_db.users;
+drop table if exists iot_db.blacklisted_jwts;
 
 create schema if not exists iot_db;
 
@@ -44,17 +45,7 @@ create table if not exists iot_db.status_logs (
             references iot_db.devices(id)
 );
 
-INSERT INTO iot_db.users (username, password, display_name) VALUES
-('quangkhanh', '1234', 'khanhquang'),
-('giangtruong', '1234', 'truonggiang'),
-('hieutran', '1234', 'tranhieu');
-
-INSERT INTO iot_db.commanders (display_name, of_user) VALUES
-('speaker1', 'quangkhanh'),
-('speaker2', 'giangtruong'),
-('speaker3', 'hieutran');
-
-INSERT INTO iot_db.devices (display_name, type, of_user) VALUES
-('lamp', 'SMART_LIGHT', 'quangkhanh'),
-('television', 'SMART_LIGHT', 'giangtruong'),
-('fan', 'THERMOSTAT', 'hieutran');
+create table if not exists iot_db.blacklisted_jwts (
+    jti text primary key,
+    exp bigint
+);
