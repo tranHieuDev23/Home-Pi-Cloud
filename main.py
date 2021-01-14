@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 
 
 def create_app():
@@ -6,6 +6,10 @@ def create_app():
 
     @app.route('/api/auth/validate', methods=['POST'])
     def validate():
+        pass
+
+    @app.route('/api/auth/register', methods=['POST'])
+    def register():
         pass
 
     @app.route('/api/auth/login', methods=['POST'])
