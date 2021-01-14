@@ -1,18 +1,36 @@
-from daos.user_dao import UserDAO
+import json
+from threading import Thread
 from datetime import datetime, timedelta
+from models.device import is_supported_command
 from uuid import uuid4
 from jwt.jwk import OctetJWK
 from jwt.jwt import JWT
 from jwt.utils import get_int_from_datetime
+from Levenshtein.StringMatcher import StringMatcher
+from models.user import User
 from daos.blacklisted_jwt_dao import BlacklistedJwtDAO
-from models.commander import Commander
+from daos.user_dao import UserDAO
 from daos.commander_dao import CommanderDAO
 from daos.device_dao import DeviceDAO
 from daos.status_log_dao import StatusLogDAO
+from broker_connection.hivemq_publisher import HiveMQPublisher
+from utils.json_helper import to_dict
+
+
+class PublisherThread(Thread):
+    def __init__(self, host, port, username, password, topic, message):
+        super().__init__()
+        self.__publisher = HiveMQPublisher(
+            host, port, username, password, topic)
+        self.__message = message
+
+    def run(self):
+        self.__publisher.publish(self.__message)
 
 
 class HomePiService:
-    def __init__(self, jwt_key: str):
+    def __init__(self, params):
+        (jwt_key, mqtt_host, mqtt_port, mqtt_username, mqtt_password) = params
         self.__user_dao = UserDAO()
         self.__commander_dao = CommanderDAO()
         self.__device_dao = DeviceDAO()
@@ -20,6 +38,10 @@ class HomePiService:
         self.__jwt_dao = BlacklistedJwtDAO()
         self.__jwt = JWT()
         self.__jwt_key = OctetJWK(jwt_key.encode())
+        self.__mqtt_host = mqtt_host
+        self.__mqtt_port = mqtt_port
+        self.__mqtt_username = mqtt_username
+        self.__mqtt_password = mqtt_password
 
     def __parse_jwt(self, jwt: str):
         try:
@@ -127,8 +149,47 @@ class HomePiService:
         self.__device_dao.update(device)
         return device
 
-    def issue_command():
-        pass
+    def issue_command(self, device_name: str, of_user: User, command: str, params: dict):
+        device_name = device_name.strip().lower()
+        command = command.strip()
+        if (len(device_name) == 0 or len(command) == 0):
+            return None
+
+        devices = self.__device_dao.get_of_user(of_user.username)
+        if (len(devices) == 0):
+            return None
+
+        distances = [
+            StringMatcher(seq1=device_name,
+                          seq2=item.displayName.strip().lower()).distance()
+            for item in devices
+        ]
+        min_distance = min(distances)
+        if (min_distance > 0.2 * len(device_name)):
+            return None
+        min_index = distances.index(min_distance)
+
+        device = devices[min_index]
+        if (not is_supported_command(device.type, command)):
+            return None
+
+        command_topic = of_user.commandTopic
+        mqtt_message = json.dumps(to_dict({
+            'deviceId': device.id,
+            'command': command,
+            'params': params
+        }))
+        print(mqtt_message)
+        PublisherThread(
+            self.__mqtt_host,
+            self.__mqtt_port,
+            self.__mqtt_username,
+            self.__mqtt_password,
+            command_topic,
+            mqtt_message
+        ).start()
+
+        return device
 
     def get_status():
         pass

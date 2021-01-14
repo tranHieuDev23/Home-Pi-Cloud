@@ -56,6 +56,16 @@ class AuthService:
         topic_name = str(uuid4())
         return f'homepi/{type}/{topic_name}'
 
+    def get_user_from_jwt(self, jwt: str):
+        result = self.__parse_jwt(jwt)
+        if (result is None):
+            return None
+        _, _, username = result
+        user = self.__user_dao.get(username)
+        if (user is None):
+            return None
+        return user
+
     def get_jwt_from_username(self, username: str):
         jwt = self.__jwt.encode({
             'jti': str(uuid4()),
@@ -67,13 +77,7 @@ class AuthService:
         return jwt
 
     def validate_user(self, jwt):
-        result = self.__parse_jwt(jwt)
-        if (result is None):
-            return None
-        _, _, username = result
-        user = self.__user_dao.get(username)
-        if (user is None):
-            return None
+        user = self.get_jwt_from_username(jwt)
         user = self.__clear_sensitive_user_data(user)
         return user
 

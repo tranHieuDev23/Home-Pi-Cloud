@@ -9,11 +9,11 @@ def _make_status_log(row) -> StatusLog:
 
 class StatusLogDAO(PostgresDAO):
 
-    def get(self, key):
+    def get(self, id):
         command = f'''
-        SELECT * FROM iot_db.status_logs WHERE id = '{key}';
+        SELECT * FROM iot_db.status_logs WHERE id = %s;
         '''
-        row = self.connection.query(command)
+        row = self.connection.query(command, (id,))
         if row.__len__() > 0:
             return _make_status_log(row[0])
         else:
@@ -27,29 +27,22 @@ class StatusLogDAO(PostgresDAO):
         return [_make_status_log(row) for row in rows]
 
     def update(self, entity: StatusLog):
-        command = f'''
-        UPDATE iot_db.status_logs SET 
-        display_name = '{entity.display_name}',
-        type = '{entity.type}',
-        of_user = '{entity.owner}'
-        WHERE id = '{entity.id}';
-        '''
-        self.connection.update(command)
+        pass
 
     def save(self, status_log: StatusLog):
         status_log.id = uuid4()
         command = f'''
-        INSERT INTO iot_db.status_logs (id, of_device, timestamp, field_name, field_value) VALUES 
-            ('{status_log.id}', '{status_log.ofDevice}', '{status_log.timestamp}', '{status_log.fieldName}', '{status_log.fieldValue}')
-        RETURNING *;
+        INSERT INTO iot_db.status_logs VALUES (%s, %s, %s, %s, %s) 
+            RETURNING *;
         '''
-        rows = self.connection.query(command)
+        rows = self.connection.query(command, (status_log.id, status_log.ofDevice,
+                                               status_log.timestamp, status_log.fieldName, status_log.fieldValue))
         if (len(rows) == 0):
             return None
         return _make_status_log(rows[0])
 
-    def delete(self, status_log: StatusLog):
+    def delete(self, id: str):
         command = f'''
-        DELETE FROM iot_db.status_logs WHERE id = '{status_log.id}'
+        DELETE FROM iot_db.status_logs WHERE id = %s;
         '''
-        self.connection.update(command)
+        self.connection.update(command, (id,))

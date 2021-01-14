@@ -15,10 +15,16 @@ def create_app():
 
     AUTH_COOKIE = 'HomePiAuth'
     AUTH_COOKIE_MAX_AGE = 30 * 24 * 60 * 60
+
     JWT_KEY = getenv('JWT_KEY')
+    MQTT_HOST = getenv('MQTT_HOST')
+    MQTT_PORT = int(getenv('MQTT_PORT'))
+    MQTT_USERNAME = getenv('MQTT_USERNAME')
+    MQTT_PASSWORD = getenv('MQTT_PASSWORD')
 
     auth_service = AuthService(JWT_KEY)
-    home_pi_service = HomePiService(JWT_KEY)
+    home_pi_service = HomePiService(
+        (JWT_KEY, MQTT_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD))
 
     def __get_jwt__(req: Request):
         try:
@@ -31,7 +37,7 @@ def create_app():
         jwt = __get_jwt__(req)
         if (jwt is None):
             return None
-        return auth_service.validate_user(jwt)
+        return auth_service.get_user_from_jwt(jwt)
 
     def __get_json_response__(response, status=HTTPStatus.OK):
         response_dict = to_dict(response)
@@ -46,9 +52,10 @@ def create_app():
 
     @app.route('/api/auth/validate', methods=['POST'])
     def validate():
-        user = __get_user__(request)
-        if (user is None):
+        jwt = __get_jwt__(request)
+        if (jwt is None):
             return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        user = auth_service.validate_user(jwt)
         return __get_json_response__(user)
 
     @app.route('/api/auth/register', methods=['POST'])
@@ -250,7 +257,24 @@ def create_app():
 
     @app.route('/api/home-control/issue-command', methods=['POST'])
     def issue_command():
-        pass
+        request_json = request.get_json()
+        if ('token' not in request_json or 'deviceName' not in request_json or 'command' not in request_json or 'params' not in request_json):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        jwt = request_json['token']
+        user = auth_service.get_user_from_jwt(jwt)
+        device_name = request_json['deviceName']
+        command = request_json['command']
+        params = request_json['params']
+        target_device = home_pi_service.issue_command(
+            device_name, user, command, params)
+        if (target_device is None):
+            return __get_json_response__({
+                'success': False
+            })
+        return __get_json_response__({
+            'success': True,
+            'target': target_device
+        })
 
     @app.route('/api/home-control/get-status', methods=['POST'])
     def get_status():

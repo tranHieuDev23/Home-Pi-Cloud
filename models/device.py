@@ -12,3 +12,9 @@ class Device:
         self.displayName = displayName
         self.type = type
         self.owner = owner
+
+
+def is_supported_command(type: DeviceType, command: str):
+    if (type == DeviceType.LIGHT):
+        return command in ['turnOn', 'turnOff']
+    return False

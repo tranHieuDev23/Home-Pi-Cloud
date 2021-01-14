@@ -8,18 +8,18 @@ from broker_connection.connection_factory import ConnectionFactory
 
 class HiveMQConnectionFactory(ConnectionFactory):
 
-    def __init__(self, username, password, topic):
-        self.__username = username
-        self.__password = password
-        self.__topic = topic
-        self.__host = "localhost"
-        self.__port = 1883
+    def __init__(self, host, port, username, password, topic):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.topic = topic
 
     def create_connection(self) -> Connection:
         return HiveMQConnection(
-            username=self.__username,
-            password=self.__password,
-            host=self.__host,
-            port=self.__port,
-            topic=self.__topic
+            username=self.username,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            topic=self.topic
         )

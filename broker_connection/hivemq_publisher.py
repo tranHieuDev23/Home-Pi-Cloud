@@ -6,7 +6,8 @@ from broker_connection.publisher import Publisher
 
 class HiveMQPublisher(Publisher):
 
-    def __init__(self, username: str, password: str, topic: str):
+    def __init__(self, host: str, port: int, username: str, password: str, topic: str):
         super(HiveMQPublisher, self).__init__()
-        factory = HiveMQConnectionFactory(username, password, topic)
+        factory = HiveMQConnectionFactory(
+            host, port, username, password, topic)
         self._connection = factory.create_connection()

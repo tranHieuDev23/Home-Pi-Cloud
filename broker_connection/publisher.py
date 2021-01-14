@@ -1,10 +1,9 @@
 # Created by quangkhanh at 02/01/2021
 # File: publisher.py
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 from broker_connection.connection import Connection
-from broker_connection.connection_factory import ConnectionFactory
 
 
 class Publisher(metaclass=ABCMeta):
