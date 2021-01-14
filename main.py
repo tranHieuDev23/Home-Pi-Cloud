@@ -124,13 +124,16 @@ def create_app():
     def validate_commander():
         request_json = request.get_json()
         if ('token' not in request_json):
-            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
-        jwt = request_json['token']
-        commander = home_pi_service.validate_commander(jwt)
-        if (commander is None):
             return __get_json_response__({}, HTTPStatus.FORBIDDEN)
-        response = __get_json_response__({})
-        return response
+        jwt = request_json['token']
+        result = home_pi_service.validate_commander(jwt)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        _, username = result
+        commander_jwt = auth_service.get_jwt_from_username(username)
+        return __get_json_response__({
+            'newToken': commander_jwt
+        })
 
     @app.route('/api/home-control/rename-commander', methods=['POST'])
     def rename_commander():
@@ -168,23 +171,82 @@ def create_app():
 
     @app.route('/api/home-control/get-devices', methods=['POST'])
     def get_devices():
-        pass
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        devices = home_pi_service.get_devices(user.username)
+        return __get_json_response__({'devices': devices})
 
     @app.route('/api/home-control/register-device', methods=['POST'])
     def register_device():
-        pass
-
-    @app.route('/api/home-control/rename-device', methods=['POST'])
-    def rename_device():
-        pass
-
-    @app.route('/api/home-control/unregister-device', methods=['POST'])
-    def unregister_device():
-        pass
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('deviceId' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        device_id = request_json['deviceId']
+        result = home_pi_service.register_device(
+            device_id, user.username)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        device, jwt = result
+        return __get_json_response__({
+            'device': device,
+            'token': jwt
+        })
 
     @app.route('/api/home-control/validate-device', methods=['POST'])
     def validate_device():
-        pass
+        request_json = request.get_json()
+        if ('token' not in request_json):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        jwt = request_json['token']
+        result = home_pi_service.validate_device(jwt)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        _, command_topic, status_topic = result
+        response = __get_json_response__({
+            'broker': 'broker.hivemq.com',
+            'port': 1883,
+            'commandTopic': command_topic,
+            'statusTopic': status_topic
+        })
+        return response
+
+    @app.route('/api/home-control/rename-device', methods=['POST'])
+    def rename_device():
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('deviceId' not in request_json or 'newName' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        device_id = request_json['deviceId']
+        new_name = request_json['newName']
+        result = home_pi_service.rename_device(
+            device_id, user.username, new_name)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        device = result
+        return __get_json_response__({
+            'device': device
+        })
+
+    @app.route('/api/home-control/unregister-device', methods=['POST'])
+    def unregister_device():
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('deviceId' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        device_id = request_json['deviceId']
+        result = home_pi_service.unregister_device(
+            device_id, user.username)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        return __get_json_response__({})
 
     @app.route('/api/home-control/issue-command', methods=['POST'])
     def issue_command():

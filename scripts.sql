@@ -9,7 +9,9 @@ create schema if not exists iot_db;
 create table if not exists iot_db.users (
     username text primary key,
     password text not null,
-    display_name text
+    display_name text not null,
+    command_topic text not null,
+    status_topic text not null
 );
 
 create table if not exists iot_db.commanders (
@@ -57,5 +59,16 @@ INSERT INTO iot_db.commanders(id, display_name, of_user) VALUES
     ('speaker:7', 'Home Pi Speaker', null),
     ('speaker:8', 'Home Pi Speaker', null),
     ('speaker:9', 'Home Pi Speaker', null),
-    ('speaker:10', 'Home Pi Speaker', null)
-RETURNING *;
+    ('speaker:10', 'Home Pi Speaker', null);
+
+INSERT INTO iot_db.devices(id, display_name, type, of_user) VALUES
+    ('light:1', 'Home Pi Light', 'LIGHT', null),
+    ('light:2', 'Home Pi Light', 'LIGHT', null),
+    ('light:3', 'Home Pi Light', 'LIGHT', null),
+    ('light:4', 'Home Pi Light', 'LIGHT', null),
+    ('light:5', 'Home Pi Light', 'LIGHT', null),
+    ('thermostat:1', 'Home Pi Thermostat', 'THERMOSTAT', null),
+    ('thermostat:2', 'Home Pi Thermostat', 'THERMOSTAT', null),
+    ('thermostat:3', 'Home Pi Thermostat', 'THERMOSTAT', null),
+    ('thermostat:4', 'Home Pi Thermostat', 'THERMOSTAT', null),
+    ('thermostat:5', 'Home Pi Thermostat', 'THERMOSTAT', null);

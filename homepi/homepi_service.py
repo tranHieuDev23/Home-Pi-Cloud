@@ -1,3 +1,4 @@
+from daos.user_dao import UserDAO
 from datetime import datetime, timedelta
 from uuid import uuid4
 from jwt.jwk import OctetJWK
@@ -12,6 +13,7 @@ from daos.status_log_dao import StatusLogDAO
 
 class HomePiService:
     def __init__(self, jwt_key: str):
+        self.__user_dao = UserDAO()
         self.__commander_dao = CommanderDAO()
         self.__device_dao = DeviceDAO()
         self.__log_dao = StatusLogDAO()
@@ -66,7 +68,7 @@ class HomePiService:
         commander.owner = username
         self.__commander_dao.update(commander)
         self.__jwt_dao.save((jti, exp))
-        return commander
+        return commander, username
 
     def rename_commander(self, commander_id: str, of_username: str, new_name: str):
         commander = self.__commander_dao.get(commander_id)
@@ -84,20 +86,46 @@ class HomePiService:
         self.__commander_dao.update(commander)
         return commander
 
-    def get_devices():
-        pass
+    def get_devices(self, of_username: str):
+        return self.__device_dao.get_of_user(of_username)
 
-    def register_device():
-        pass
+    def register_device(self, device_id: str, of_username: str):
+        device = self.__device_dao.get(device_id)
+        if (device is None):
+            return None
+        device.owner = of_username
+        jwt = self.__get_jwt_from_username_and_id(of_username, device.id)
+        return device, jwt
 
-    def rename_device():
-        pass
+    def validate_device(self, jwt: str):
+        result = self.__parse_jwt(jwt)
+        if (result is None):
+            return None
+        jti, exp, username, device_id = result
+        device = self.__device_dao.get(device_id)
+        if (device is None or device.owner is not None):
+            return None
+        device.owner = username
+        self.__device_dao.update(device)
+        self.__jwt_dao.save((jti, exp))
+        user = self.__user_dao.get(username)
+        return device, user.commandTopic, user.statusTopic
 
-    def unregister_device():
-        pass
+    def rename_device(self, device_id: str, of_username: str, new_name: str):
+        device = self.__device_dao.get(device_id)
+        if (device is None or device.owner != of_username):
+            return None
+        device.displayName = new_name
+        self.__device_dao.update(device)
+        return device
 
-    def validate_device():
-        pass
+    def unregister_device(self, device_id: str, of_username: str):
+        device = self.__device_dao.get(device_id)
+        if (device is None or device.owner != of_username):
+            return None
+        device.owner = None
+        self.__device_dao.update(device)
+        return device
 
     def issue_command():
         pass

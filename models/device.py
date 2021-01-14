@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class DeviceType(Enum):
-    SMART_LIGHT = 'SMART_LIGHT'
+    LIGHT = 'LIGHT'
     THERMOSTAT = 'THERMOSTAT'
 
 

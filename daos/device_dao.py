@@ -11,7 +11,7 @@ from models.device import Device, DeviceType
 
 
 def _make_device(row) -> Device:
-    return Device(id=int(row[0]),
+    return Device(id=row[0],
                   displayName=row[1],
                   type=DeviceType[row[2]],
                   owner=row[3])
@@ -62,3 +62,10 @@ class DeviceDAO(PostgresDAO):
         DELETE FROM iot_db.devices WHERE id = %s
         '''
         self.connection.update(command, (entity.id,))
+
+    def get_of_user(self, username: str):
+        command = f'''
+        SELECT * FROM iot_db.devices WHERE of_user = %s;
+        '''
+        rows = self.connection.query(command, (username,))
+        return [_make_device(row) for row in rows]

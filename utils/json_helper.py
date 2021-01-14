@@ -1,4 +1,9 @@
+from enum import Enum
+
+
 def to_dict(obj):
+    if (isinstance(obj, Enum)):
+        return obj.name
     if (isinstance(obj, dict)):
         data = {}
         for key in obj:

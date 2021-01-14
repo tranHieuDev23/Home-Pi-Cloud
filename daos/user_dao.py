@@ -25,7 +25,9 @@ class UserDAO(PostgresDAO):
         username = rows[0][0]
         password = rows[0][1]
         display_name = rows[0][2]
-        return User(username, display_name, password)
+        command_topic = rows[0][3]
+        status_topic = rows[0][4]
+        return User(username, display_name, password, command_topic, status_topic)
 
     def get_all(self):
         command = '''
@@ -38,19 +40,19 @@ class UserDAO(PostgresDAO):
         hashed_password = hash_message(user.password)
         command = f'''
         UPDATE iot_db.users
-            SET password = %s, display_name = %s
+            SET password = %s, display_name = %s, command_topic = %s, status_topic = %s
             WHERE name = %s;
         '''
         self.connection.update(
-            command, (hashed_password, user.displayName, user.username))
+            command, (hashed_password, user.displayName, user.username, user.commandTopic, user.statusTopic))
 
     def save(self, user: User):
         hashed_password = hash_message(user.password)
         command = f'''
-        INSERT INTO iot_db.users VALUES (%s, %s, %s) RETURNING *;
+        INSERT INTO iot_db.users VALUES (%s, %s, %s, %s, %s) RETURNING *;
         '''
         rows = self.connection.query(
-            command, (user.username, hashed_password, user.displayName))
+            command, (user.username, hashed_password, user.displayName, user.commandTopic, user.statusTopic))
         if (len(rows) == 0):
             return None
         username = rows[0][0]

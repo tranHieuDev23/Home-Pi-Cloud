@@ -1,3 +1,4 @@
+import re
 from daos.blacklisted_jwt_dao import BlacklistedJwtDAO
 from datetime import datetime, timedelta
 from models.user import User
@@ -15,6 +16,8 @@ class AuthService:
         self.__jwt_dao = BlacklistedJwtDAO()
         self.__jwt = JWT()
         self.__jwt_key = OctetJWK(jwt_key.encode())
+        self.__username_regex = '^[a-zA-Z0-9]{6,}$'
+        self.__password_regex = '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$'
 
     def __parse_jwt(self, jwt: str):
         try:
@@ -29,7 +32,31 @@ class AuthService:
         except:
             return None
 
-    def __get_jwt_from_username(self, username: str):
+    def __clean_user_data(self, user: User):
+        user.username = user.username.strip()
+        user.displayName = user.displayName.strip()
+        return user
+
+    def __is_valid_user_data(self, user: User):
+        if (not bool(re.match(self.__username_regex, user.username))):
+            return False
+        if (not bool(re.match(self.__password_regex, user.password))):
+            return False
+        if (len(user.displayName) == 0):
+            return False
+        return True
+
+    def __clear_sensitive_user_data(self, user: User):
+        user.password = None
+        user.commandTopic = None
+        user.statusTopic = None
+        return user
+
+    def __generate_topic_name(self, type: str):
+        topic_name = str(uuid4())
+        return f'homepi/{type}/{topic_name}'
+
+    def get_jwt_from_username(self, username: str):
         jwt = self.__jwt.encode({
             'jti': str(uuid4()),
             'sub': username,
@@ -47,15 +74,20 @@ class AuthService:
         user = self.__user_dao.get(username)
         if (user is None):
             return None
-        user.password = None
+        user = self.__clear_sensitive_user_data(user)
         return user
 
     def register_user(self, user: User):
+        user = self.__clean_user_data(user)
+        if (not self.__is_valid_user_data(user)):
+            return None
+        user.commandTopic = self.__generate_topic_name('command')
+        user.statusTopic = self.__generate_topic_name('status')
         new_user = self.__user_dao.save(user)
         if (new_user is None):
             return None
-        user.password = None
-        return new_user, self.__get_jwt_from_username(new_user.username)
+        user = self.__clear_sensitive_user_data(user)
+        return new_user, self.get_jwt_from_username(new_user.username)
 
     def login(self, username: str, password: str):
         user = self.__user_dao.get(username)
@@ -63,8 +95,8 @@ class AuthService:
             return None
         if (not is_equal(password, user.password)):
             return None
-        user.password = None
-        jwt = self.__get_jwt_from_username(username)
+        user = self.__clear_sensitive_user_data(user)
+        jwt = self.get_jwt_from_username(username)
         return user, jwt
 
     def logout(self, jwt):
