@@ -280,6 +280,22 @@ def create_app():
 
     @app.route('/api/home-control/get-status', methods=['POST'])
     def get_status():
-        pass
+        request_json = request.get_json()
+        if ('token' not in request_json or 'deviceName' not in request_json or 'fieldNames' not in request_json):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        jwt = request_json['token']
+        user = auth_service.get_user_from_jwt(jwt)
+        device_name = request_json['deviceName']
+        field_names = request_json['fieldNames']
+        field_values = home_pi_service.get_status(
+            device_name, user.username, field_names)
+        if (field_values is None):
+            return __get_json_response__({
+                'success': False
+            })
+        return __get_json_response__({
+            'success': True,
+            'fieldValues': field_values
+        })
 
     return app

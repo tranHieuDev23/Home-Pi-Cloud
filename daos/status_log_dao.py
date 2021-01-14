@@ -46,3 +46,16 @@ class StatusLogDAO(PostgresDAO):
         DELETE FROM iot_db.status_logs WHERE id = %s;
         '''
         self.connection.update(command, (id,))
+
+    def get_latest(self, of_device_id: str, field_name: str):
+        command = '''
+        SELECT * FROM iot_db.status_logs
+            WHERE of_device = %s
+            AND field_name = %s
+            ORDER BY timestamp DESC
+            LIMIT 1;
+        '''
+        rows = self.connection.query(command, (of_device_id, field_name))
+        if (len(rows) == 0):
+            return None
+        return _make_status_log(rows[0])

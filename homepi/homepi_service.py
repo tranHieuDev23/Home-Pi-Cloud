@@ -1,4 +1,5 @@
 import json
+from typing import List
 from status_listener.status_listener_helper import StatusListener
 from threading import Thread
 from datetime import datetime, timedelta
@@ -159,16 +160,10 @@ class HomePiService:
         self.__device_dao.update(device)
         return device
 
-    def issue_command(self, device_name: str, of_user: User, command: str, params: dict):
-        device_name = device_name.strip().lower()
-        command = command.strip()
-        if (len(device_name) == 0 or len(command) == 0):
-            return None
-
-        devices = self.__device_dao.get_of_user(of_user.username)
+    def __find_device(self, device_name: str, of_username: str):
+        devices = self.__device_dao.get_of_user(of_username)
         if (len(devices) == 0):
             return None
-
         distances = [
             StringMatcher(seq1=device_name,
                           seq2=item.displayName.strip().lower()).distance()
@@ -178,11 +173,16 @@ class HomePiService:
         if (min_distance > 0.2 * len(device_name)):
             return None
         min_index = distances.index(min_distance)
+        return devices[min_index]
 
-        device = devices[min_index]
-        if (not is_supported_command(device.type, command)):
+    def issue_command(self, device_name: str, of_user: User, command: str, params: dict):
+        device_name = device_name.strip().lower()
+        command = command.strip()
+        if (len(device_name) == 0 or len(command) == 0):
             return None
-
+        device = self.__find_device(device_name, of_user.username)
+        if (device is None):
+            return None
         command_topic = of_user.commandTopic
         mqtt_message = json.dumps(to_dict({
             'deviceId': device.id,
@@ -198,8 +198,13 @@ class HomePiService:
             command_topic,
             mqtt_message
         ).start()
-
         return device
 
-    def get_status():
-        pass
+    def get_status(self, device_name: str, of_username: str, field_names: List[str]):
+        device = self.__find_device(device_name, of_username)
+        if (device is None):
+            return None
+        field_values = [
+            self.__log_dao.get_latest(device.id, item) for item in field_names
+        ]
+        return field_values
