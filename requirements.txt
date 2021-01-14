@@ -4,3 +4,4 @@ jwt
 python-dotenv
 paho-mqtt
 psycopg2-binary
+bcrypt

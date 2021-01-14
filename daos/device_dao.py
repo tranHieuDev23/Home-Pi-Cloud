@@ -1,4 +1,4 @@
-# author: Khanh.Quang 
+# author: Khanh.Quang
 # institute: Hanoi University of Science and Technology
 # file name: device_dao.py
 # project name: Home-Pi-Cloud
@@ -6,24 +6,23 @@
 
 
 from daos.psql_dao import PostgresDAO
-from models.device import Device
+from models.device import Device, DeviceType
 
 
 def _make_device(row) -> Device:
     return Device(id=int(row[0]),
                   display_name=row[1],
-                  type=row[2],
-                  owner=row[3],
-                  status=row[4])
+                  type=DeviceType[row[2]],
+                  owner=row[3])
 
 
 class DeviceDAO(PostgresDAO):
 
     def get(self, key):
-        device_command = f'''
-        SELECT * FROM iot_db.device where id = '{key}';
+        command = f'''
+        SELECT * FROM iot_db.devices where id = '{key}';
         '''
-        row = self.connection.query(device_command)
+        row = self.connection.query(command)
         if row.__len__() > 0:
             return _make_device(row[0])
         else:
@@ -31,37 +30,34 @@ class DeviceDAO(PostgresDAO):
 
     def get_all(self):
         command = f'''
-        SELECT * FROM iot_db.device; 
+        SELECT * FROM iot_db.devices; 
         '''
         rows = self.connection.query(command)
         return [_make_device(row) for row in rows]
 
-    def update(self, entity: Device):
+    def update(self, device: Device):
         command = f'''
-        UPDATE iot_db.device SET 
-        display_name = '{entity.display_name}',
-        type = '{entity.type}',
-        customer = '{entity.owner}',
-        status = '{entity.status}'
-        WHERE id = '{entity.id}';
+        UPDATE iot_db.devices SET 
+        display_name = '{device.display_name}',
+        type = '{device.type.name}',
+        of_user = '{device.owner}'
+        WHERE id = '{device.id}';
         '''
         self.connection.update(command)
 
     def save(self, entity: Device):
         command = f'''
-        INSERT INTO iot_db.device (display_name, type, customer, status) VALUES 
-        ('{entity.display_name}', '{entity.type}', '{entity.owner}', '{entity.status}');
+        INSERT INTO iot_db.devices (display_name, type, of_user) VALUES 
+            ('{entity.display_name}', '{entity.type.name}', '{entity.owner}')
+        RETURNING *;
         '''
-        self.connection.update(command)
-        get_command = f'''
-        SELECT * FROM iot_db.device 
-        WHERE customer = '{entity.owner}' AND type = '{entity.type}' AND display_name = '{entity.display_name}';
-        '''
-        new_row = self.connection.query(get_command)
-        return _make_device(new_row[0])
-        
+        rows = self.connection.query(command)
+        if (len(rows) == 0):
+            return None
+        return _make_device(rows[0])
+
     def delete(self, entity: Device):
         command = f'''
-        DELETE FROM iot_db.device WHERE id = {entity.id}       
+        DELETE FROM iot_db.devices WHERE id = {entity.id}       
         '''
         self.connection.update(command)

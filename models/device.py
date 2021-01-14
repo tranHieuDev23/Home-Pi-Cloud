@@ -7,9 +7,8 @@ class DeviceType(Enum):
 
 
 class Device:
-    def __init__(self, id, display_name, type, owner, status) -> None:
+    def __init__(self, id, display_name, type, owner):
         self.id = id
         self.display_name = display_name
         self.type = type
         self.owner = owner
-        self.status = status

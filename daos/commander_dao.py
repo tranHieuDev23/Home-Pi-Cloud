@@ -1,4 +1,4 @@
-# author: Khanh.Quang 
+# author: Khanh.Quang
 # institute: Hanoi University of Science and Technology
 # file name: commander_dao.py
 # project name: Home-Pi-Cloud
@@ -16,7 +16,7 @@ class CommanderDAO(PostgresDAO):
 
     def get(self, key):
         command = f'''
-        SELECT * FROM iot_db.commander WHERE id = {key};
+        SELECT * FROM iot_db.commanders WHERE id = {key};
         '''
         row = self.connection.query(command)
         if len(row) > 0:
@@ -26,37 +26,32 @@ class CommanderDAO(PostgresDAO):
 
     def get_all(self):
         command = f'''
-        SELECT * FROM iot_db.commander
+        SELECT * FROM iot_db.commanders
         '''
         rows = self.connection.query(command)
         return [_make_commander(row) for row in rows]
 
     def update(self, entity: Commander):
         command = f'''
-        UPDATE iot_db.commander SET 
-        display_name = '{entity.display_name}', customer = '{entity.owner}'
+        UPDATE iot_db.commanders SET 
+        display_name = '{entity.display_name}', of_user = '{entity.owner}'
         WHERE id = {entity.id};
         '''
         self.connection.update(command)
 
     def save(self, entity: Commander):
         command = f'''
-        INSERT INTO iot_db.commander(display_name, customer) VALUES 
-        ('{entity.display_name}', '{entity.owner}');
+        INSERT INTO iot_db.commanders(display_name, of_user) VALUES
+            ('{entity.display_name}', '{entity.owner}')
+        RETURNING *;
         '''
-        self.connection.update(command)
-        get_command = f'''
-        SELECT * FROM iot_db.commander WHERE
-        display_name = '{entity.display_name}' AND customer = '{entity.owner}'
-        '''
-        row = self.connection.query(get_command)
-        if len(row) > 0:
-            return _make_commander(row[0])
-        else:
+        rows = self.connection.query(command)
+        if len(rows) == 0:
             return None
+        return _make_commander(rows[0])
 
     def delete(self, entity: Commander):
         command = f'''
-        DELETE FROM iot_db.commander WHERE id = {entity.id};
+        DELETE FROM iot_db.commanders WHERE id = {entity.id};
         '''
         self.connection.update(command)
