@@ -24,7 +24,8 @@ def create_app():
 
     auth_service = AuthService(JWT_KEY)
     home_pi_service = HomePiService(
-        (JWT_KEY, MQTT_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD))
+        JWT_KEY, MQTT_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD)
+    home_pi_service.init()
 
     def __get_jwt__(req: Request):
         try:
@@ -70,7 +71,8 @@ def create_app():
         result = auth_service.register_user(user)
         if (result is None):
             return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
-        new_user, jwt = result
+        new_user, jwt, status_topic = result
+        home_pi_service.listen_user_topic(status_topic)
         response = __get_json_response__(new_user)
         __append__auth__cookie__(response, jwt)
         return response

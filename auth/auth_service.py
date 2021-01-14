@@ -90,8 +90,8 @@ class AuthService:
         new_user = self.__user_dao.save(user)
         if (new_user is None):
             return None
-        user = self.__clear_sensitive_user_data(user)
-        return new_user, self.get_jwt_from_username(new_user.username)
+        new_user = self.__clear_sensitive_user_data(new_user)
+        return new_user, self.get_jwt_from_username(new_user.username), user.statusTopic
 
     def login(self, username: str, password: str):
         user = self.__user_dao.get(username)

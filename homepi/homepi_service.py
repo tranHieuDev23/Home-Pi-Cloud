@@ -1,4 +1,5 @@
 import json
+from status_listener.status_listener_helper import StatusListener
 from threading import Thread
 from datetime import datetime, timedelta
 from models.device import is_supported_command
@@ -29,8 +30,7 @@ class PublisherThread(Thread):
 
 
 class HomePiService:
-    def __init__(self, params):
-        (jwt_key, mqtt_host, mqtt_port, mqtt_username, mqtt_password) = params
+    def __init__(self, jwt_key, mqtt_host, mqtt_port, mqtt_username, mqtt_password):
         self.__user_dao = UserDAO()
         self.__commander_dao = CommanderDAO()
         self.__device_dao = DeviceDAO()
@@ -42,6 +42,8 @@ class HomePiService:
         self.__mqtt_port = mqtt_port
         self.__mqtt_username = mqtt_username
         self.__mqtt_password = mqtt_password
+        self.__log_listener = StatusListener(
+            mqtt_host, mqtt_port, mqtt_username, mqtt_password)
 
     def __parse_jwt(self, jwt: str):
         try:
@@ -67,6 +69,14 @@ class HomePiService:
             )
         }, self.__jwt_key)
         return jwt
+
+    def init(self):
+        users = self.__user_dao.get_all()
+        for user in users:
+            self.listen_user_topic(user.statusTopic)
+
+    def listen_user_topic(self, status_topic):
+        self.__log_listener.subscribe(status_topic)
 
     def get_commanders(self, of_username: str):
         return self.__commander_dao.get_of_user(of_username)

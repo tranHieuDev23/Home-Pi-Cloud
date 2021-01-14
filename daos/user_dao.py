@@ -9,6 +9,15 @@ from models.user import User
 from utils.hash_helper import hash_message
 
 
+def _make_user(row):
+    username = row[0]
+    password = row[1]
+    display_name = row[2]
+    command_topic = row[3]
+    status_topic = row[4]
+    return User(username, display_name, password, command_topic, status_topic)
+
+
 class UserDAO(PostgresDAO):
 
     def __init__(self):
@@ -22,19 +31,14 @@ class UserDAO(PostgresDAO):
         rows = self.connection.query(customer_command, (username,))
         if len(rows) < 1:
             return None
-        username = rows[0][0]
-        password = rows[0][1]
-        display_name = rows[0][2]
-        command_topic = rows[0][3]
-        status_topic = rows[0][4]
-        return User(username, display_name, password, command_topic, status_topic)
+        return _make_user(rows[0])
 
     def get_all(self):
         command = '''
         SELECT * FROM iot_db.users;
         '''
         rows = self.connection.query(command)
-        return [User(username=row[0], displayName=row[2]) for row in rows]
+        return [_make_user(row) for row in rows]
 
     def update(self, user: User):
         hashed_password = hash_message(user.password)
@@ -55,9 +59,7 @@ class UserDAO(PostgresDAO):
             command, (user.username, hashed_password, user.displayName, user.commandTopic, user.statusTopic))
         if (len(rows) == 0):
             return None
-        username = rows[0][0]
-        display_name = rows[0][2]
-        return User(username, display_name)
+        return _make_user(rows[0])
 
     def delete(self, user: User):
         command = f'''
