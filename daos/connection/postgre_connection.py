@@ -26,20 +26,20 @@ class PostgreConnection(DBConnection):
         except Exception as e:
             print(e.message)
 
-    def query(self, command: str) -> List[Tuple]:
+    def query(self, command: str, params=()) -> List[Tuple]:
         try:
             cur = self.con.cursor()
-            cur.execute(command)
+            cur.execute(command, params)
             self.con.commit()
             return cur.fetchall()
 
         except Exception as e:
             print(e.message)
 
-    def update(self, command: str) -> None:
+    def update(self, command: str, params=()) -> None:
         try:
             cur = self.con.cursor()
-            cur.execute(command)
+            cur.execute(command, params)
             self.con.commit()
         except Exception as e:
             print(e.message)

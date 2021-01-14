@@ -7,39 +7,36 @@ drop table if exists iot_db.blacklisted_jwts;
 create schema if not exists iot_db;
 
 create table if not exists iot_db.users (
-    username varchar (16) primary key,
+    username text primary key,
     password text not null,
-    display_name varchar(255) not null
+    display_name text
 );
 
 create table if not exists iot_db.commanders (
-    id int generated always as identity,
+    id text primary key,
     display_name varchar (255),
-    of_user varchar (16) not null,
-    primary key (id),
+    of_user text,
     constraint fk_customer_commander
         foreign key (of_user)
             references iot_db.users(username)
 );
 
 create table if not exists iot_db.devices (
-    id int generated always as identity,
+    id text primary key,
     display_name varchar (255) not null,
     type varchar (32) not null,
-    of_user varchar (16) not null,
-    primary key (id),
+    of_user text,
     constraint fk_customer_device
         foreign key (of_user)
             references iot_db.users(username)
 );
 
 create table if not exists iot_db.status_logs (
-    id int generated always as identity,
-    of_device int,
+    id text primary key,
+    of_device text,
     timestamp bigint,
     field_name varchar (32) not null,
     field_value text,
-    primary key(id),
     constraint fk_log_device
         foreign key (of_device)
             references iot_db.devices(id)
@@ -49,3 +46,16 @@ create table if not exists iot_db.blacklisted_jwts (
     jti text primary key,
     exp bigint
 );
+
+INSERT INTO iot_db.commanders(id, display_name, of_user) VALUES
+    ('speaker:1', 'Home Pi Speaker', null),
+    ('speaker:2', 'Home Pi Speaker', null),
+    ('speaker:3', 'Home Pi Speaker', null),
+    ('speaker:4', 'Home Pi Speaker', null),
+    ('speaker:5', 'Home Pi Speaker', null),
+    ('speaker:6', 'Home Pi Speaker', null),
+    ('speaker:7', 'Home Pi Speaker', null),
+    ('speaker:8', 'Home Pi Speaker', null),
+    ('speaker:9', 'Home Pi Speaker', null),
+    ('speaker:10', 'Home Pi Speaker', null)
+RETURNING *;

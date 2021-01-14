@@ -15,9 +15,9 @@ class BlacklistedJwtDAO(PostgresDAO):
     def get(self, jti):
         # select customer from database
         customer_command = f'''
-        SELECT * FROM iot_db.blacklisted_jwts WHERE jti = '{jti}';
+        SELECT * FROM iot_db.blacklisted_jwts WHERE jti = %s;
         '''
-        rows = self.connection.query(customer_command)
+        rows = self.connection.query(customer_command, (jti,))
         if len(rows) < 1:
             return None
         jti = rows[0][0]
@@ -37,9 +37,12 @@ class BlacklistedJwtDAO(PostgresDAO):
     def save(self, jwt):
         jti, exp = jwt
         command = f'''
-        INSERT INTO iot_db.blacklisted_jwts VALUES ('{jti}', '{exp}');
+        INSERT INTO iot_db.blacklisted_jwts VALUES (%s, %s);
         '''
-        self.connection.update(command)
+        self.connection.update(command, (jti, exp))
 
     def delete(self, jwt):
         pass
+
+    def is_blacklisted(self, jti):
+        return self.get(jti) is not None

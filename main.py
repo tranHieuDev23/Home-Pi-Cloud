@@ -1,3 +1,5 @@
+from utils.json_helper import to_dict
+from homepi.homepi_service import HomePiService
 from models.user import User
 from auth.auth_service import AuthService
 from os import getenv
@@ -16,6 +18,7 @@ def create_app():
     JWT_KEY = getenv('JWT_KEY')
 
     auth_service = AuthService(JWT_KEY)
+    home_pi_service = HomePiService(JWT_KEY)
 
     def __get_jwt__(req: Request):
         try:
@@ -24,15 +27,14 @@ def create_app():
         except:
             return None
 
+    def __get_user__(req: Request):
+        jwt = __get_jwt__(req)
+        if (jwt is None):
+            return None
+        return auth_service.validate_user(jwt)
+
     def __get_json_response__(response, status=HTTPStatus.OK):
-        if (isinstance(response, dict)):
-            response_dict = response
-        else:
-            response_dict = dict()
-            for key in response.__dict__:
-                value = response.__dict__[key]
-                if (value is not None):
-                    response_dict[key] = value
+        response_dict = to_dict(response)
         return Response(
             response=json.dumps(response_dict),
             status=status,
@@ -44,10 +46,7 @@ def create_app():
 
     @app.route('/api/auth/validate', methods=['POST'])
     def validate():
-        jwt = __get_jwt__(request)
-        if (jwt is None):
-            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
-        user = auth_service.validate_user(jwt)
+        user = __get_user__(request)
         if (user is None):
             return __get_json_response__({}, HTTPStatus.FORBIDDEN)
         return __get_json_response__(user)
@@ -96,19 +95,76 @@ def create_app():
 
     @app.route('/api/home-control/get-commanders', methods=['POST'])
     def get_commanders():
-        pass
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        commanders = home_pi_service.get_commanders(user.username)
+        return __get_json_response__({'commanders': commanders})
 
     @app.route('/api/home-control/register-commander', methods=['POST'])
-    def register_commanders():
-        pass
+    def register_commander():
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('commanderId' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        commander_id = request_json['commanderId']
+        result = home_pi_service.register_commander(
+            commander_id, user.username)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        commander, jwt = result
+        return __get_json_response__({
+            'commander': commander,
+            'token': jwt
+        })
+
+    @app.route('/api/home-control/validate-commander', methods=['POST'])
+    def validate_commander():
+        request_json = request.get_json()
+        if ('token' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        jwt = request_json['token']
+        commander = home_pi_service.validate_commander(jwt)
+        if (commander is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        response = __get_json_response__({})
+        return response
 
     @app.route('/api/home-control/rename-commander', methods=['POST'])
     def rename_commander():
-        pass
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('commanderId' not in request_json or 'newName' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        commander_id = request_json['commanderId']
+        new_name = request_json['newName']
+        result = home_pi_service.rename_commander(
+            commander_id, user.username, new_name)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        commander = result
+        return __get_json_response__({
+            'commander': commander
+        })
 
     @app.route('/api/home-control/unregister-commander', methods=['POST'])
-    def unregister_commanders():
-        pass
+    def unregister_commander():
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('commanderId' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        commander_id = request_json['commanderId']
+        result = home_pi_service.unregister_commander(
+            commander_id, user.username)
+        if (result is None):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        return __get_json_response__({})
 
     @app.route('/api/home-control/get-devices', methods=['POST'])
     def get_devices():
@@ -124,10 +180,6 @@ def create_app():
 
     @app.route('/api/home-control/unregister-device', methods=['POST'])
     def unregister_device():
-        pass
-
-    @app.route('/api/home-control/validate-commander', methods=['POST'])
-    def validate_commander():
         pass
 
     @app.route('/api/home-control/validate-device', methods=['POST'])

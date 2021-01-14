@@ -5,6 +5,7 @@
 # date: 30/12/2020
 
 
+from uuid import uuid4
 from daos.psql_dao import PostgresDAO
 from models.device import Device, DeviceType
 
@@ -20,9 +21,9 @@ class DeviceDAO(PostgresDAO):
 
     def get(self, key):
         command = f'''
-        SELECT * FROM iot_db.devices WHERE id = '{key}';
+        SELECT * FROM iot_db.devices WHERE id = %s;
         '''
-        row = self.connection.query(command)
+        row = self.connection.query(command, (key,))
         if row.__len__() > 0:
             return _make_device(row[0])
         else:
@@ -37,27 +38,27 @@ class DeviceDAO(PostgresDAO):
 
     def update(self, device: Device):
         command = f'''
-        UPDATE iot_db.devices SET 
-        display_name = '{device.displayName}',
-        type = '{device.type.name}',
-        of_user = '{device.owner}'
-        WHERE id = '{device.id}';
+        UPDATE iot_db.devices
+            SET display_name = %s, type = %s, of_user = %s
+            WHERE id = %s;
         '''
-        self.connection.update(command)
+        self.connection.update(
+            command, (device.displayName, device.type.name, device.owner, device.id))
 
     def save(self, entity: Device):
+        entity.id = uuid4()
         command = f'''
-        INSERT INTO iot_db.devices (display_name, type, of_user) VALUES 
-            ('{entity.displayName}', '{entity.type.name}', '{entity.owner}')
-        RETURNING *;
+        INSERT INTO iot_db.devices (id, display_name, type, of_user) VALUES (%s, %s, %s, %s)
+            RETURNING *;
         '''
-        rows = self.connection.query(command)
+        rows = self.connection.query(
+            command, (entity.id, entity.displayName, entity.type.name, entity.owner))
         if (len(rows) == 0):
             return None
         return _make_device(rows[0])
 
     def delete(self, entity: Device):
         command = f'''
-        DELETE FROM iot_db.devices WHERE id = {entity.id}       
+        DELETE FROM iot_db.devices WHERE id = %s
         '''
-        self.connection.update(command)
+        self.connection.update(command, (entity.id,))

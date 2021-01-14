@@ -1,3 +1,4 @@
+from uuid import uuid4
 from daos.psql_dao import PostgresDAO
 from models.status_log import StatusLog
 
@@ -36,9 +37,10 @@ class StatusLogDAO(PostgresDAO):
         self.connection.update(command)
 
     def save(self, status_log: StatusLog):
+        status_log.id = uuid4()
         command = f'''
-        INSERT INTO iot_db.status_logs (of_device, timestamp, field_name, field_value) VALUES 
-            ('{status_log.ofDevice}', '{status_log.timestamp}', '{status_log.fieldName}', '{status_log.fieldValue}')
+        INSERT INTO iot_db.status_logs (id, of_device, timestamp, field_name, field_value) VALUES 
+            ('{status_log.id}', '{status_log.ofDevice}', '{status_log.timestamp}', '{status_log.fieldName}', '{status_log.fieldValue}')
         RETURNING *;
         '''
         rows = self.connection.query(command)
@@ -48,6 +50,6 @@ class StatusLogDAO(PostgresDAO):
 
     def delete(self, status_log: StatusLog):
         command = f'''
-        DELETE FROM iot_db.status_logs WHERE id = {status_log.id}       
+        DELETE FROM iot_db.status_logs WHERE id = '{status_log.id}'
         '''
         self.connection.update(command)

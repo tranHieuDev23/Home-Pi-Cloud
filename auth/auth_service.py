@@ -16,15 +16,12 @@ class AuthService:
         self.__jwt = JWT()
         self.__jwt_key = OctetJWK(jwt_key.encode())
 
-    def __is_blacklisted_jwt(self, jti):
-        return self.__jwt_dao.get(jti) is not None
-
     def __parse_jwt(self, jwt: str):
         try:
             decoded_message = self.__jwt.decode(
                 jwt, self.__jwt_key, do_time_check=True)
             jti = decoded_message['jti']
-            if (self.__is_blacklisted_jwt(jti)):
+            if (self.__jwt_dao.is_blacklisted(jti)):
                 return None
             exp = decoded_message['exp']
             username = decoded_message['sub']

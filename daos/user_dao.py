@@ -17,9 +17,9 @@ class UserDAO(PostgresDAO):
     def get(self, username):
         # select customer from database
         customer_command = f'''
-        SELECT * FROM iot_db.users WHERE username = '{username}';
+        SELECT * FROM iot_db.users WHERE username = %s;
         '''
-        rows = self.connection.query(customer_command)
+        rows = self.connection.query(customer_command, (username,))
         if len(rows) < 1:
             return None
         username = rows[0][0]
@@ -38,17 +38,19 @@ class UserDAO(PostgresDAO):
         hashed_password = hash_message(user.password)
         command = f'''
         UPDATE iot_db.users
-        SET password = '{hashed_password}', display_name = '{user.displayName}'
-        WHERE name = '{user.username}';
+            SET password = %s, display_name = %s
+            WHERE name = %s;
         '''
-        self.connection.update(command)
+        self.connection.update(
+            command, (hashed_password, user.displayName, user.username))
 
     def save(self, user: User):
         hashed_password = hash_message(user.password)
         command = f'''
-        INSERT INTO iot_db.users VALUES ('{user.username}', '{hashed_password}', '{user.displayName}') RETURNING *;
+        INSERT INTO iot_db.users VALUES (%s, %s, %s) RETURNING *;
         '''
-        rows = self.connection.query(command)
+        rows = self.connection.query(
+            command, (user.username, hashed_password, user.displayName))
         if (len(rows) == 0):
             return None
         username = rows[0][0]
@@ -57,6 +59,6 @@ class UserDAO(PostgresDAO):
 
     def delete(self, user: User):
         command = f'''
-        DELETE FROM iot_db.users where name = '{user.username}'
+        DELETE FROM iot_db.users WHERE username = %s
         '''
-        self.connection.update(command)
+        self.connection.update(command, (user.username,))
