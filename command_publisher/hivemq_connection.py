@@ -3,7 +3,7 @@
 import paho.mqtt.client as paho
 from paho.mqtt.client import Client
 
-from broker_connection.connection import Connection
+from command_publisher.connection import Connection
 
 
 def _on_publish(client, user_data, mid):
@@ -29,4 +29,5 @@ class HiveMQConnection(Connection):
         self.__qos = 2
 
     def publish(self, content: str) -> None:
-        self.__client.publish(topic=self.__topic, payload=content, qos=self.__qos)
+        self.__client.publish(topic=self.__topic,
+                              payload=content, qos=self.__qos)

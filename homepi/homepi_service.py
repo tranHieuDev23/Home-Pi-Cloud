@@ -15,7 +15,7 @@ from daos.user_dao import UserDAO
 from daos.commander_dao import CommanderDAO
 from daos.device_dao import DeviceDAO
 from daos.status_log_dao import StatusLogDAO
-from broker_connection.hivemq_publisher import HiveMQPublisher
+from command_publisher.hivemq_publisher import HiveMQPublisher
 from utils.json_helper import to_dict
 
 

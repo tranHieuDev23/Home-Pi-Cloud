@@ -3,7 +3,7 @@
 
 from abc import ABCMeta
 
-from broker_connection.connection import Connection
+from command_publisher.connection import Connection
 
 
 class Publisher(metaclass=ABCMeta):

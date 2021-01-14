@@ -3,7 +3,7 @@
 
 from abc import ABCMeta, abstractmethod
 
-from broker_connection.connection import Connection
+from command_publisher.connection import Connection
 
 
 class ConnectionFactory(metaclass=ABCMeta):

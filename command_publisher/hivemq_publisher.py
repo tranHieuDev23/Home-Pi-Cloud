@@ -1,7 +1,7 @@
 # Created by quangkhanh at 02/01/2021
 # File: hivemq_publisher.py
-from broker_connection.hivemq_connection_factory import HiveMQConnectionFactory
-from broker_connection.publisher import Publisher
+from command_publisher.hivemq_connection_factory import HiveMQConnectionFactory
+from command_publisher.publisher import Publisher
 
 
 class HiveMQPublisher(Publisher):
