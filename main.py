@@ -21,7 +21,7 @@ def create_app():
         pass
 
     @app.route('/api/home-control/register-commander', methods=['POST'])
-    def get_commanders():
+    def register_commanders():
         pass
 
     @app.route('/api/home-control/rename-commander', methods='POST')
@@ -29,7 +29,7 @@ def create_app():
         pass
 
     @app.route('/api/home-control/unregister-commander', methods=['POST'])
-    def get_commanders():
+    def unregister_commanders():
         pass
 
     @app.route('/api/home-control/get-devices', methods=['POST'])
@@ -37,7 +37,7 @@ def create_app():
         pass
 
     @app.route('/api/home-control/register-device', methods=['POST'])
-    def get_commanders():
+    def register_device():
         pass
 
     @app.route('/api/home-control/rename-device', methods='POST')
@@ -45,15 +45,23 @@ def create_app():
         pass
 
     @app.route('/api/home-control/unregister-device', methods=['POST'])
-    def get_commanders():
+    def unregister_device():
+        pass
+
+    @app.route('/api/home-control/validate-commander', methods=['POST'])
+    def validate_commander():
+        pass
+
+    @app.route('/api/home-control/validate-device', methods=['POST'])
+    def validate_device():
         pass
 
     @app.route('/api/home-control/issue-command', methods=['POST'])
-    def get_commanders():
+    def issue_command():
         pass
 
     @app.route('/api/home-control/get-status', methods=['POST'])
-    def get_commanders():
+    def get_status():
         pass
 
     return app
