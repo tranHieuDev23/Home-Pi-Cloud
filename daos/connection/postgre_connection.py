@@ -32,9 +32,9 @@ class PostgreConnection(DBConnection):
             cur.execute(command, params)
             self.con.commit()
             return cur.fetchall()
-
         except Exception as e:
             print(e.message)
+            return []
 
     def update(self, command: str, params=()) -> None:
         try:

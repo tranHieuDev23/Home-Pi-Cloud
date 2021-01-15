@@ -189,7 +189,6 @@ class HomePiService:
             'command': command,
             'params': params
         }))
-        print(mqtt_message)
         PublisherThread(
             self.__mqtt_host,
             self.__mqtt_port,
