@@ -30,7 +30,7 @@ class StatusLogDAO(PostgresDAO):
         pass
 
     def save(self, status_log: StatusLog):
-        status_log.id = uuid4()
+        status_log.id = str(uuid4())
         command = f'''
         INSERT INTO iot_db.status_logs VALUES (%s, %s, %s, %s, %s) 
             RETURNING *;

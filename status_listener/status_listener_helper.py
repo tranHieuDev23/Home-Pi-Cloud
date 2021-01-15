@@ -28,7 +28,7 @@ class StatusListener:
 
     def on_message(self, client, userdata, message):
         timestamp = round(datetime.now().timestamp() * 1000)
-        message_json = json.loads(message)
+        message_json = json.loads(message.payload.decode('utf-8'))
         if ('deviceId' not in message_json or 'fieldName' not in message_json or 'fieldValue' not in message_json):
             return
         device_id = message_json['deviceId']
