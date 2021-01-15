@@ -58,4 +58,4 @@ class StatusLogDAO(PostgresDAO):
         rows = self.connection.query(command, (of_device_id, field_name))
         if (len(rows) == 0):
             return None
-        return _make_status_log(rows[0])
+        return rows[0][4]
