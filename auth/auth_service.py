@@ -77,7 +77,7 @@ class AuthService:
         return jwt
 
     def validate_user(self, jwt):
-        user = self.get_jwt_from_username(jwt)
+        user = self.get_user_from_jwt(jwt)
         user = self.__clear_sensitive_user_data(user)
         return user
 

@@ -55,7 +55,7 @@ def create_app():
     def validate():
         jwt = __get_jwt__(request)
         if (jwt is None):
-            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+            return __get_json_response__({})
         user = auth_service.validate_user(jwt)
         return __get_json_response__(user)
 
