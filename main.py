@@ -110,6 +110,19 @@ def create_app():
         commanders = home_pi_service.get_commanders(user.username)
         return __get_json_response__({'commanders': commanders})
 
+    @app.route('/api/home-control/check-commander-ownership', methods=['POST'])
+    def check_commander_ownership():
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('commanderId' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        commander_id = request_json['commanderId']
+        is_registered = home_pi_service.check_commander_ownership(
+            user, commander_id)
+        return __get_json_response__({'isRegistered': is_registered})
+
     @app.route('/api/home-control/register-commander', methods=['POST'])
     def register_commander():
         user = __get_user__(request)
@@ -185,6 +198,18 @@ def create_app():
             return __get_json_response__({}, HTTPStatus.FORBIDDEN)
         devices = home_pi_service.get_devices(user.username)
         return __get_json_response__({'devices': devices})
+
+    @app.route('/api/home-control/check-device-ownership', methods=['POST'])
+    def check_device_ownership():
+        user = __get_user__(request)
+        if (user is None):
+            return __get_json_response__({}, HTTPStatus.FORBIDDEN)
+        request_json = request.get_json()
+        if ('deviceId' not in request_json):
+            return __get_json_response__({}, HTTPStatus.BAD_REQUEST)
+        device_id = request_json['deviceId']
+        is_registered = home_pi_service.check_device_ownership(user, device_id)
+        return __get_json_response__({'isRegistered': is_registered})
 
     @app.route('/api/home-control/register-device', methods=['POST'])
     def register_device():

@@ -1,4 +1,5 @@
 import json
+from models.commander import Commander
 from typing import List
 from status_listener.status_listener_helper import StatusListener
 from threading import Thread
@@ -82,6 +83,10 @@ class HomePiService:
     def get_commanders(self, of_username: str):
         return self.__commander_dao.get_of_user(of_username)
 
+    def check_commander_ownership(self, of_username: str, commander_id: str):
+        commander = self.__commander_dao.get(commander_id)
+        return commander.owner is not None
+
     def register_commander(self, commander_id: str, of_username: str):
         commander = self.__commander_dao.get(commander_id)
         if (commander is None or commander.owner is not None):
@@ -121,6 +126,10 @@ class HomePiService:
 
     def get_devices(self, of_username: str):
         return self.__device_dao.get_of_user(of_username)
+
+    def check_device_ownership(self, of_username: str, device_id: str):
+        device = self.__device_dao.get(device_id)
+        return device.owner is not None
 
     def register_device(self, device_id: str, of_username: str):
         device = self.__device_dao.get(device_id)
